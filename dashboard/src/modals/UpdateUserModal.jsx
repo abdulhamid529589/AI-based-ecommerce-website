@@ -53,7 +53,7 @@ const UpdateUserModal = ({ user, onClose, onSuccess }) => {
 
     setLoading(true)
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('accessToken')
       const updateData = {}
 
       if (formData.name) updateData.name = formData.name

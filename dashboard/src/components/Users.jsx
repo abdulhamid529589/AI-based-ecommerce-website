@@ -27,7 +27,7 @@ const Users = () => {
   const fetchUsers = async () => {
     setLoading(true)
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('accessToken')
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/v1/admin/getallusers`,
         {
@@ -50,7 +50,7 @@ const Users = () => {
       window.confirm('Are you sure you want to delete this user? This action cannot be undone.')
     ) {
       try {
-        const token = localStorage.getItem('token')
+        const token = localStorage.getItem('accessToken')
         await axios.delete(
           `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/v1/admin/delete/${userId}`,
           {

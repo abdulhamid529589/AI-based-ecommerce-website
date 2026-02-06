@@ -60,7 +60,7 @@ export const adminSlice = createSlice({
 export const fetchDashboardStats = () => async (dispatch) => {
   dispatch(adminSlice.actions.setLoading(true))
   try {
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem('accessToken')
     const response = await axios.get(
       `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/v1/admin/fetch/dashboard-stats`,
       {

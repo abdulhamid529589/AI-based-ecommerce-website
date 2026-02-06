@@ -50,7 +50,7 @@ const CreateProductModal = ({ onClose, onSuccess }) => {
 
     setLoading(true)
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('accessToken')
       const data = new FormData()
       data.append('name', formData.name)
       data.append('description', formData.description)
