@@ -58,11 +58,14 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-500 via-blue-600 to-purple-700 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-500 via-blue-600 to-purple-700 flex items-center justify-center p-4 sm:p-6 lg:p-8 pt-20 sm:pt-24">
       <div className="w-full max-w-md">
-        <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl shadow-2xl p-6 sm:p-8">
+        <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl shadow-2xl p-6 sm:p-8 md:p-10">
           {/* Header */}
-          <div className="text-center mb-6 sm:mb-8">
+          <div className="text-center mb-8 sm:mb-10">
+            <div className="inline-block w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center mb-4">
+              <span className="text-white font-bold text-lg sm:text-xl">E</span>
+            </div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
               Welcome Back
             </h1>
@@ -72,24 +75,24 @@ const Login = () => {
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
             {/* Email Input */}
             <div>
               <label
                 htmlFor="email"
-                className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2"
+                className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3"
               >
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="email"
                   id="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="your@email.com"
-                  className="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+                  className="w-full pl-10 pr-4 py-3 sm:py-3.5 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base sm:text-base transition min-h-[44px]"
                   required
                 />
               </div>
@@ -99,32 +102,28 @@ const Login = () => {
             <div>
               <label
                 htmlFor="password"
-                className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2"
+                className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3"
               >
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-10 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+                  className="w-full pl-10 pr-12 py-3 sm:py-3.5 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base sm:text-base transition min-h-[44px]"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
                   aria-label="Toggle password visibility"
                 >
-                  {showPassword ? (
-                    <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" />
-                  ) : (
-                    <Eye className="w-4 h-4 sm:w-5 sm:h-5" />
-                  )}
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
             </div>
@@ -133,7 +132,7 @@ const Login = () => {
             <div className="text-right">
               <Link
                 to="/password/forgot"
-                className="text-xs sm:text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition"
+                className="text-xs sm:text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition active:scale-95 inline-block"
               >
                 Forgot Password?
               </Link>
@@ -143,22 +142,51 @@ const Login = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2.5 sm:py-3 rounded-lg transition duration-200 text-sm sm:text-base"
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-400 text-white font-semibold py-3 sm:py-4 rounded-lg transition duration-200 text-base sm:text-lg active:scale-95 min-h-[48px] flex items-center justify-center gap-2"
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? (
+                <>
+                  <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                'Sign In'
+              )}
             </button>
           </form>
 
+          {/* Divider */}
+          <div className="relative my-6 sm:my-8">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300 dark:border-gray-700"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400">
+                New to our store?
+              </span>
+            </div>
+          </div>
+
           {/* Sign Up Link */}
-          <p className="text-center text-gray-600 dark:text-gray-400 mt-6 text-sm sm:text-base">
-            Don't have an account?{' '}
-            <Link
-              to="/register"
-              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold transition"
-            >
-              Sign Up
-            </Link>
-          </p>
+          <Link
+            to="/register"
+            className="block w-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white font-semibold py-3 sm:py-4 rounded-lg transition text-center text-base sm:text-lg active:scale-95 min-h-[48px] flex items-center justify-center"
+          >
+            Create Account
+          </Link>
+
+          {/* Demo Credentials */}
+          <div className="mt-6 sm:mt-8 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium mb-2">
+              📝 Demo Account
+            </p>
+            <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
+              <span className="font-medium">Email:</span> demo@example.com
+            </p>
+            <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
+              <span className="font-medium">Password:</span> demo123
+            </p>
+          </div>
         </div>
       </div>
     </div>
