@@ -83,6 +83,11 @@ const Payment = () => {
   const calculateShipping = () => {
     if (subtotal === 0) return 0
 
+    // Only add shipping if a district is actually selected
+    if (!shippingDetails.district || shippingDetails.district.trim() === '') {
+      return 0
+    }
+
     const district = shippingDetails.district.toLowerCase().trim()
     if (district === 'chittagong' || district === 'চট্টগ্রাম') {
       return 60

@@ -13,7 +13,7 @@ const Cart = () => {
 
   // Calculate totals
   const subtotal = (cartItems || []).reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const shipping = subtotal > 0 ? 150 : 0
+  const shipping = 0 // Shipping cost will be added after selecting district during payment
   const total = subtotal + shipping
 
   const handleQuantityChange = (itemId, newQuantity) => {
