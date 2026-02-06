@@ -1,7 +1,7 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice } from '@reduxjs/toolkit'
 
 const productSlice = createSlice({
-  name: "product",
+  name: 'product',
   initialState: {
     loading: false,
     products: [],
@@ -9,28 +9,29 @@ const productSlice = createSlice({
   },
   reducers: {
     setLoading: (state, action) => {
-      state.loading = action.payload;
+      state.loading = action.payload
     },
     setProducts: (state, action) => {
-      state.products = action.payload;
+      state.products = action.payload
     },
     createNewProduct: (state, action) => {
-      state.products.push(action.payload);
-      state.totalProducts += 1;
+      state.products.push(action.payload)
+      state.totalProducts += 1
     },
     updateProduct: (state, action) => {
-      const index = state.products.findIndex(p => p.id === action.payload.id);
+      const index = state.products.findIndex((p) => p.id === action.payload.id)
       if (index !== -1) {
-        state.products[index] = action.payload;
+        state.products[index] = action.payload
       }
     },
     deleteProduct: (state, action) => {
-      state.products = state.products.filter(p => p.id !== action.payload);
-      state.totalProducts -= 1;
+      state.products = state.products.filter((p) => p.id !== action.payload)
+      state.totalProducts -= 1
     },
   },
-});
+})
 
-export const { setLoading, setProducts, createNewProduct, updateProduct, deleteProduct } = productSlice.actions;
+export const { setLoading, setProducts, createNewProduct, updateProduct, deleteProduct } =
+  productSlice.actions
 
-export default productSlice.reducer;
+export default productSlice.reducer
