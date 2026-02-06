@@ -1,42 +1,34 @@
-import { Link } from "react-router-dom";
-import {
-  Mail,
-  Phone,
-  MapPin,
-  Facebook,
-  Twitter,
-  Instagram,
-  Youtube,
-} from "lucide-react";
+import { Link } from 'react-router-dom'
+import { Mail, Phone, MapPin, Facebook, Twitter, Instagram, Youtube } from 'lucide-react'
 
 const Footer = () => {
   const footerLinks = {
     company: [
-      { name: "About Us", path: "/about" },
-      { name: "Careers", path: "#" },
-      { name: "Press", path: "#" },
-      { name: "Blog", path: "#" },
+      { name: 'About Us', path: '/about' },
+      { name: 'Careers', path: '#' },
+      { name: 'Press', path: '#' },
+      { name: 'Blog', path: '#' },
     ],
     customer: [
-      { name: "Contact Us", path: "/contact" },
-      { name: "FAQ", path: "/faq" },
-      { name: "Shipping Info", path: "#" },
-      { name: "Returns", path: "#" },
+      { name: 'Contact Us', path: '/contact' },
+      { name: 'FAQ', path: '/faq' },
+      { name: 'Shipping Info', path: '#' },
+      { name: 'Returns', path: '#' },
     ],
     legal: [
-      { name: "Privacy Policy", path: "#" },
-      { name: "Terms of Service", path: "#" },
-      { name: "Cookie Policy", path: "#" },
-      { name: "Security", path: "#" },
+      { name: 'Privacy Policy', path: '#' },
+      { name: 'Terms of Service', path: '#' },
+      { name: 'Cookie Policy', path: '#' },
+      { name: 'Security', path: '#' },
     ],
-  };
+  }
 
   const socialLinks = [
-    { icon: Facebook, href: "#", label: "Facebook" },
-    { icon: Twitter, href: "#", label: "Twitter" },
-    { icon: Instagram, href: "#", label: "Instagram" },
-    { icon: Youtube, href: "#", label: "YouTube" },
-  ];
+    { icon: Facebook, href: '#', label: 'Facebook' },
+    { icon: Twitter, href: '#', label: 'Twitter' },
+    { icon: Instagram, href: '#', label: 'Instagram' },
+    { icon: Youtube, href: '#', label: 'YouTube' },
+  ]
 
   return (
     <footer className="glass border-t border-[hsla(var(--glass-border))] mt-16">
@@ -48,8 +40,8 @@ const Footer = () => {
               ShopMate
             </h2>
             <p className="text-muted-foreground mb-6">
-              Your trusted partner for online shopping. Discover amazing
-              products with exceptional quality and service.
+              Your trusted partner for online shopping. Discover amazing products with exceptional
+              quality and service.
             </p>
             <div className="space-y-3">
               <div className="flex items-center space-x-3 text-muted-foreground">
@@ -69,9 +61,7 @@ const Footer = () => {
 
           {/* Company Links */}
           <div>
-            <h3 className="text-lg font-semibold text-foreground mb-4">
-              Company
-            </h3>
+            <h3 className="text-lg font-semibold text-foreground mb-4">Company</h3>
             <ul className="space-y-2">
               {footerLinks.company.map((link) => (
                 <li key={link.name}>
@@ -88,9 +78,7 @@ const Footer = () => {
 
           {/* Customer Service */}
           <div>
-            <h3 className="text-lg font-semibold text-foreground mb-4">
-              Customer Service
-            </h3>
+            <h3 className="text-lg font-semibold text-foreground mb-4">Customer Service</h3>
             <ul className="space-y-2">
               {footerLinks.customer.map((link) => (
                 <li key={link.name}>
@@ -107,9 +95,7 @@ const Footer = () => {
 
           {/* Legal */}
           <div>
-            <h3 className="text-lg font-semibold text-foreground mb-4">
-              Legal
-            </h3>
+            <h3 className="text-lg font-semibold text-foreground mb-4">Legal</h3>
             <ul className="space-y-2">
               {footerLinks.legal.map((link) => (
                 <li key={link.name}>
@@ -128,9 +114,7 @@ const Footer = () => {
         {/* Newsletter Signup */}
         <div className="glass-panel mb-12">
           <div className="text-center mb-6">
-            <h3 className="text-xl font-semibold text-foreground mb-2">
-              Stay Connected
-            </h3>
+            <h3 className="text-xl font-semibold text-foreground mb-2">Stay Connected</h3>
             <p className="text-muted-foreground">
               Subscribe to our newsletter for exclusive offers and updates
             </p>
@@ -166,17 +150,15 @@ const Footer = () => {
           </div>
 
           <div className="text-center md:text-right">
-            <p className="text-muted-foreground text-sm">
-              © 2024 ShopMate. All rights reserved.
-            </p>
+            <p className="text-muted-foreground text-sm">© 2024 ShopMate. All rights reserved.</p>
             <p className="text-muted-foreground text-xs mt-1">
-              Developed By CodeWithZeeshu
+              Developed By Mohammad Abdul Hamid Saqibi
             </p>
           </div>
         </div>
       </div>
     </footer>
-  );
-};
+  )
+}
 
-export default Footer;
+export default Footer

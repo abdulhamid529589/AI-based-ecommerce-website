@@ -1,141 +1,250 @@
-import React, { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { toggleUpdateProductModal } from "../store/slices/extraSlice";
-import { LoaderCircle } from "lucide-react";
-import { updateProduct } from "../store/slices/productsSlice";
+import React, { useState, useEffect } from 'react'
+import { LoaderCircle, X } from 'lucide-react'
+import axios from 'axios'
+import { toast } from 'react-toastify'
+import '../styles/modals.css'
 
-const UpdateProductModal = ({ selectedProduct }) => {
-  const { loading } = useSelector((state) => state.product);
-  const dispatch = useDispatch();
-
+const UpdateProductModal = ({ product, onClose, onSuccess }) => {
+  const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    price: "",
-    category: "",
-    stock: "",
-  });
+    name: '',
+    description: '',
+    price: '',
+    category: 'Electronics',
+    stock: '',
+    images: [],
+  })
+
+  const [imagePreview, setImagePreview] = useState([])
 
   const categoryOptions = [
-    "Electronics",
-    "Fashion",
-    "Home & Garden",
-    "Sports",
-    "Books",
-    "Beauty",
-    "Automotive",
-    "Kids & Baby",
-  ];
+    'Electronics',
+    'Fashion',
+    'Home & Garden',
+    'Sports',
+    'Books',
+    'Beauty',
+    'Automotive',
+    'Kids & Baby',
+  ]
 
   useEffect(() => {
-    if (selectedProduct) {
-      console.log(selectedProduct);
+    if (product) {
       setFormData({
-        name: selectedProduct.name || "",
-        description: selectedProduct.description || "",
-        price: selectedProduct.price || "",
-        category: selectedProduct.category || "",
-        stock: selectedProduct.stock || "",
-      });
+        name: product.name || '',
+        description: product.description || '',
+        price: product.price || '',
+        category: product.category || 'Electronics',
+        stock: product.stock || '',
+        images: [],
+      })
+      // Set existing image preview if available
+      if (product.image) {
+        setImagePreview([product.image])
+      }
     }
-  }, [selectedProduct]);
+  }, [product])
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files)
+    setFormData({
+      ...formData,
+      images: files,
+    })
 
-    const data = {
-      name: formData.name,
-      description: formData.description,
-      price: formData.price,
-      category: formData.category,
-      stock: formData.stock,
-    };
+    // Create preview URLs for new images
+    const previews = files.map((file) => URL.createObjectURL(file))
+    setImagePreview(previews)
+  }
 
-    dispatch(updateProduct(data, selectedProduct.id));
-  };
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+
+    if (!formData.name || !formData.price || !formData.stock) {
+      toast.error('Please fill in all required fields')
+      return
+    }
+
+    setLoading(true)
+    try {
+      const token = localStorage.getItem('token')
+      const data = new FormData()
+      data.append('name', formData.name)
+      data.append('description', formData.description)
+      data.append('price', formData.price)
+      data.append('category', formData.category)
+      data.append('stock', formData.stock)
+
+      for (let i = 0; i < formData.images.length; i++) {
+        data.append('images', formData.images[i])
+      }
+
+      const response = await axios.put(
+        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/v1/product/admin/update/${product.id}`,
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        },
+      )
+
+      toast.success('Product updated successfully')
+      onSuccess()
+      onClose()
+    } catch (error) {
+      console.error('Error updating product:', error)
+      toast.error(error.response?.data?.message || 'Failed to update product')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex justify-center items-center p-4">
-      <div className="bg-white rounded-xl w-full max-w-2xl p-6 relative">
-        <button
-          onClick={() => dispatch(toggleUpdateProductModal())}
-          className="absolute top-4 right-4 text-gray-600 hover:text-red-500 text-xl"
-        >
-          &times;
-        </button>
-        <h2 className="text-2xl font-bold mb-4 text-center">Update Product</h2>
-
-        <form
-          className="grid grid-cols-1 md:grid-cols-2 gap-4"
-          onSubmit={handleSubmit}
-        >
-          <input
-            type="text"
-            placeholder="Title"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="border px-4 py-2 rounded"
-          />
-          <select
-            className="w-full border p-2 rounded-lg"
-            value={formData.category}
-            onChange={(e) =>
-              setFormData({ ...formData, category: e.target.value })
-            }
-            required
-          >
-            {categoryOptions.map((cat, idx) => (
-              <option key={idx} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
-          <input
-            type="number"
-            placeholder="Price"
-            value={formData.price}
-            onChange={(e) =>
-              setFormData({ ...formData, price: e.target.value })
-            }
-            className="border px-4 py-2 rounded"
-          />
-          <input
-            type="number"
-            placeholder="Stock"
-            value={formData.stock}
-            onChange={(e) =>
-              setFormData({ ...formData, stock: e.target.value })
-            }
-            className="border px-4 py-2 rounded"
-          />
-
-          <textarea
-            placeholder="Description"
-            value={formData.description}
-            onChange={(e) =>
-              setFormData({ ...formData, description: e.target.value })
-            }
-            className="border px-4 py-2 rounded col-span-1 md:col-span-2"
-            rows={4}
-          />
-
-          <button
-            type="submit"
-            className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded col-span-1 md:col-span-2"
-          >
-            {loading ? (
-              <>
-                <LoaderCircle className="w-6 h-6 animate-spin" />
-                Updating
-              </>
-            ) : (
-              "Update Product"
-            )}
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <div className="modal-header">
+          <h2 className="modal-title">Update Product</h2>
+          <button onClick={onClose} className="modal-close" aria-label="Close modal">
+            <X className="w-6 h-6" />
           </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="modal-form">
+          {/* Product Name */}
+          <div className="form-group">
+            <label className="form-label">Product Name *</label>
+            <input
+              type="text"
+              placeholder="Enter product name"
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  name: e.target.value,
+                })
+              }
+              className="form-input"
+              required
+            />
+          </div>
+
+          {/* Category & Price */}
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Category *</label>
+              <select
+                className="form-input"
+                value={formData.category}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                required
+              >
+                {categoryOptions.map((cat, idx) => (
+                  <option key={idx} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Price (৳) *</label>
+              <input
+                type="number"
+                placeholder="Enter price"
+                value={formData.price}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    price: e.target.value,
+                  })
+                }
+                className="form-input"
+                min="0"
+                step="0.01"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Stock */}
+          <div className="form-group">
+            <label className="form-label">Stock Quantity *</label>
+            <input
+              type="number"
+              placeholder="Enter stock quantity"
+              value={formData.stock}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  stock: e.target.value,
+                })
+              }
+              className="form-input"
+              min="0"
+              required
+            />
+          </div>
+
+          {/* Images */}
+          <div className="form-group">
+            <label className="form-label">Product Images</label>
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={handleImageChange}
+              className="form-input file-input"
+            />
+            <p className="form-hint">You can upload multiple images to replace existing ones</p>
+            {imagePreview.length > 0 && (
+              <div className="image-preview">
+                {imagePreview.map((preview, idx) => (
+                  <div key={idx} className="preview-item">
+                    <img src={preview} alt={`Preview ${idx}`} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Description */}
+          <div className="form-group">
+            <label className="form-label">Description</label>
+            <textarea
+              placeholder="Enter product description"
+              value={formData.description}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  description: e.target.value,
+                })
+              }
+              className="form-input form-textarea"
+              rows={4}
+            />
+          </div>
+
+          {/* Buttons */}
+          <div className="modal-actions">
+            <button type="button" onClick={onClose} className="btn-cancel" disabled={loading}>
+              Cancel
+            </button>
+            <button type="submit" className="btn-submit" disabled={loading}>
+              {loading ? (
+                <>
+                  <LoaderCircle className="w-5 h-5 animate-spin" />
+                  <span>Updating...</span>
+                </>
+              ) : (
+                'Update Product'
+              )}
+            </button>
+          </div>
         </form>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default UpdateProductModal;
+export default UpdateProductModal

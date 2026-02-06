@@ -1,70 +1,106 @@
-import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { createNewProduct } from "../store/slices/productsSlice";
-import { toggleCreateProductModal } from "../store/slices/extraSlice";
-import { LoaderCircle } from "lucide-react";
+import React, { useState } from 'react'
+import { LoaderCircle, X } from 'lucide-react'
+import axios from 'axios'
+import { toast } from 'react-toastify'
+import '../styles/modals.css'
 
-const CreateProductModal = () => {
-  const { loading } = useSelector((state) => state.product);
-  const dispatch = useDispatch();
-
+const CreateProductModal = ({ onClose, onSuccess }) => {
+  const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    price: "",
-    category: "Electronics",
-    stock: "",
+    name: '',
+    description: '',
+    price: '',
+    category: 'Electronics',
+    stock: '',
     images: [],
-  });
+  })
+
+  const [imagePreview, setImagePreview] = useState([])
 
   const categoryOptions = [
-    "Electronics",
-    "Fashion",
-    "Home & Garden",
-    "Sports",
-    "Books",
-    "Beauty",
-    "Automotive",
-    "Kids & Baby",
-  ];
+    'Electronics',
+    'Fashion',
+    'Home & Garden',
+    'Sports',
+    'Books',
+    'Beauty',
+    'Automotive',
+    'Kids & Baby',
+  ]
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const data = new FormData();
-    data.append("name", formData.name);
-    data.append("description", formData.description);
-    data.append("price", formData.price);
-    data.append("category", formData.category);
-    data.append("stock", formData.stock);
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files)
+    setFormData({
+      ...formData,
+      images: files,
+    })
 
-    for (let i = 0; i < formData.images.length; i++) {
-      data.append("images", formData.images[i]);
+    // Create preview URLs
+    const previews = files.map((file) => URL.createObjectURL(file))
+    setImagePreview(previews)
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+
+    if (!formData.name || !formData.price || !formData.stock) {
+      toast.error('Please fill in all required fields')
+      return
     }
 
-    dispatch(createNewProduct(data));
-  };
+    setLoading(true)
+    try {
+      const token = localStorage.getItem('token')
+      const data = new FormData()
+      data.append('name', formData.name)
+      data.append('description', formData.description)
+      data.append('price', formData.price)
+      data.append('category', formData.category)
+      data.append('stock', formData.stock)
+
+      for (let i = 0; i < formData.images.length; i++) {
+        data.append('images', formData.images[i])
+      }
+
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/v1/product/admin/create`,
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        },
+      )
+
+      toast.success('Product created successfully')
+      onSuccess()
+      onClose()
+    } catch (error) {
+      console.error('Error creating product:', error)
+      toast.error(error.response?.data?.message || 'Failed to create product')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
-    <>
-      <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex justify-center items-center p-4">
-        <div className="bg-white rounded-xl w-full max-w-2xl p-6 relative">
-          <button
-            onClick={() => dispatch(toggleCreateProductModal())}
-            className="absolute top-4 right-4 text-gray-600 hover:text-red-500 text-xl"
-          >
-            &times;
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <div className="modal-header">
+          <h2 className="modal-title">Create New Product</h2>
+          <button onClick={onClose} className="modal-close" aria-label="Close modal">
+            <X className="w-6 h-6" />
           </button>
-          <h2 className="text-2xl font-bold mb-4 text-center">
-            Create New Product
-          </h2>
+        </div>
 
-          <form
-            className="grid grid-cols-1 md:grid-cols-2 gap-4"
-            onSubmit={handleSubmit}
-          >
+        <form onSubmit={handleSubmit} className="modal-form">
+          {/* Product Name */}
+          <div className="form-group">
+            <label className="form-label">Product Name *</label>
             <input
               type="text"
-              placeholder="Title"
+              placeholder="Enter product name"
               value={formData.name}
               onChange={(e) =>
                 setFormData({
@@ -72,37 +108,54 @@ const CreateProductModal = () => {
                   name: e.target.value,
                 })
               }
-              className="border px-4 py-2 rounded"
-            />
-            <select
-              className="w-full border p-2 rounded-lg"
-              value={formData.category}
-              onChange={(e) =>
-                setFormData({ ...formData, category: e.target.value })
-              }
+              className="form-input"
               required
-            >
-              {categoryOptions.map((cat, idx) => (
-                <option key={idx} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
-            <input
-              type="number"
-              placeholder="Price"
-              value={formData.price}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  price: e.target.value,
-                })
-              }
-              className="border px-4 py-2 rounded"
             />
+          </div>
+
+          {/* Category & Price */}
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Category *</label>
+              <select
+                className="form-input"
+                value={formData.category}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                required
+              >
+                {categoryOptions.map((cat, idx) => (
+                  <option key={idx} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Price (৳) *</label>
+              <input
+                type="number"
+                placeholder="Enter price"
+                value={formData.price}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    price: e.target.value,
+                  })
+                }
+                className="form-input"
+                min="0"
+                step="0.01"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Stock */}
+          <div className="form-group">
+            <label className="form-label">Stock Quantity *</label>
             <input
               type="number"
-              placeholder="Stock"
+              placeholder="Enter stock quantity"
               value={formData.stock}
               onChange={(e) =>
                 setFormData({
@@ -110,24 +163,39 @@ const CreateProductModal = () => {
                   stock: e.target.value,
                 })
               }
-              className="border px-4 py-2 rounded"
+              className="form-input"
+              min="0"
+              required
             />
+          </div>
 
+          {/* Images */}
+          <div className="form-group">
+            <label className="form-label">Product Images</label>
             <input
               type="file"
               multiple
               accept="image/*"
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  images: Array.from(e.target.files),
-                })
-              }
-              className="border px-4 py-2 rounded col-span-1 md:col-span-2"
+              onChange={handleImageChange}
+              className="form-input file-input"
             />
+            <p className="form-hint">You can upload multiple images</p>
+            {imagePreview.length > 0 && (
+              <div className="image-preview">
+                {imagePreview.map((preview, idx) => (
+                  <div key={idx} className="preview-item">
+                    <img src={preview} alt={`Preview ${idx}`} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
+          {/* Description */}
+          <div className="form-group">
+            <label className="form-label">Description</label>
             <textarea
-              placeholder="Description"
+              placeholder="Enter product description"
               value={formData.description}
               onChange={(e) =>
                 setFormData({
@@ -135,28 +203,31 @@ const CreateProductModal = () => {
                   description: e.target.value,
                 })
               }
-              className="border px-4 py-2 rounded col-span-1 md:col-span-2"
+              className="form-input form-textarea"
               rows={4}
             />
+          </div>
 
-            <button
-              type="submit"
-              className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded col-span-1 md:col-span-2"
-            >
+          {/* Buttons */}
+          <div className="modal-actions">
+            <button type="button" onClick={onClose} className="btn-cancel" disabled={loading}>
+              Cancel
+            </button>
+            <button type="submit" className="btn-submit" disabled={loading}>
               {loading ? (
                 <>
-                  <LoaderCircle className="w-6 h-6 animate-spin" />
-                  Creating
+                  <LoaderCircle className="w-5 h-5 animate-spin" />
+                  <span>Creating...</span>
                 </>
               ) : (
-                "Add New Product"
+                'Create Product'
               )}
             </button>
-          </form>
-        </div>
+          </div>
+        </form>
       </div>
-    </>
-  );
-};
+    </div>
+  )
+}
 
-export default CreateProductModal;
+export default CreateProductModal

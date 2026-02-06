@@ -5,10 +5,16 @@ import cookieParser from 'cookie-parser'
 import fileUpload from 'express-fileupload'
 import { createTables } from './utils/createTables.js'
 import { errorMiddleware } from './middlewares/errorMiddleware.js'
+import {
+  notFoundMiddleware,
+  globalErrorHandler,
+  rateLimitMiddleware,
+} from './middlewares/errorHandlerMiddleware.js'
 import authRouter from './router/authRoutes.js'
 import productRouter from './router/productRoutes.js'
 import adminRouter from './router/adminRoutes.js'
 import orderRouter from './router/orderRoutes.js'
+import paymentGatewayRouter from './router/paymentGatewayRoutes.js'
 import Stripe from 'stripe'
 import database from './database/db.js'
 
@@ -83,13 +89,22 @@ app.use(
   }),
 )
 
+// Apply rate limiting to all API routes
+app.use('/api/v1', rateLimitMiddleware)
+
 app.use('/api/v1/auth', authRouter)
 app.use('/api/v1/product', productRouter)
 app.use('/api/v1/admin', adminRouter)
 app.use('/api/v1/order', orderRouter)
+app.use('/api/v1/payment', paymentGatewayRouter)
 
 createTables()
 
+// 404 Not Found handler - must be before error handler
+app.use(notFoundMiddleware)
+
+// Global error handler - must be last
 app.use(errorMiddleware)
+app.use(globalErrorHandler)
 
 export default app
