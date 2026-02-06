@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
-import axios from 'axios'
+import { axiosInstance } from '../lib/axios'
 import { toast } from 'react-toastify'
 
 const Orders = () => {
@@ -33,19 +33,20 @@ const Orders = () => {
   const fetchOrders = async () => {
     setLoading(true)
     try {
-      const token = localStorage.getItem('token')
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'}/order/orders/me`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      )
+      const response = await axiosInstance.get('/order/orders/me')
       setOrders(response.data.myOrders || [])
     } catch (error) {
       console.error('Error fetching orders:', error)
-      toast.error('Failed to load orders')
+
+      // Better error handling
+      if (error.response?.status === 401) {
+        toast.error('Session expired. Please login again.')
+        navigate('/login')
+      } else if (error.response?.status === 400) {
+        toast.error('Invalid request. Please try again.')
+      } else {
+        toast.error('Failed to load orders')
+      }
     } finally {
       setLoading(false)
     }

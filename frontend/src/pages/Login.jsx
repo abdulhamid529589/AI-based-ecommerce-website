@@ -32,7 +32,7 @@ const Login = () => {
         dispatch(
           setUser({
             user: response.data.user,
-            token: response.data.token,
+            token: response.data.accessToken,
           }),
         )
 

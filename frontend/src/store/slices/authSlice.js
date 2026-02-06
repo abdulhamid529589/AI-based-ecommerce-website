@@ -4,7 +4,7 @@ import { toast } from 'react-toastify'
 
 // Check if user is stored in localStorage
 const storedUser = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null
-const storedToken = localStorage.getItem('token')
+const storedToken = localStorage.getItem('accessToken') // ✅ CHANGED from 'token' to 'accessToken'
 
 const authSlice = createSlice({
   name: 'auth',
@@ -25,14 +25,14 @@ const authSlice = createSlice({
       state.token = action.payload.token
       state.isAuthenticated = true
       localStorage.setItem('user', JSON.stringify(action.payload.user))
-      localStorage.setItem('token', action.payload.token)
+      localStorage.setItem('accessToken', action.payload.token) // ✅ CHANGED from 'token' to 'accessToken'
     },
     logout: (state) => {
       state.user = null
       state.token = null
       state.isAuthenticated = false
       localStorage.removeItem('user')
-      localStorage.removeItem('token')
+      localStorage.removeItem('accessToken') // ✅ CHANGED from 'token' to 'accessToken'
     },
   },
   extraReducers: (builder) => {},

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Mail, Phone, MapPin, Facebook, Twitter, Instagram, Youtube } from 'lucide-react'
+import { Mail, Phone, MapPin, Facebook, Twitter, Instagram, Youtube, Linkedin } from 'lucide-react'
 
 const Footer = () => {
   const footerLinks = {
@@ -150,9 +150,18 @@ const Footer = () => {
           </div>
 
           <div className="text-center md:text-right">
-            <p className="text-muted-foreground text-sm">© 2024 ShopMate. All rights reserved.</p>
-            <p className="text-muted-foreground text-xs mt-1">
+            <p className="text-muted-foreground text-sm">© 2026 ShopMate. All rights reserved.</p>
+            <p className="text-muted-foreground text-xs mt-1 flex items-center justify-center md:justify-end gap-2">
               Developed By Mohammad Abdul Hamid Saqibi
+              <a
+                href="https://www.linkedin.com/in/abdul-hamid-saqibi/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="LinkedIn"
+                className="inline-flex items-center hover:text-primary transition-colors"
+              >
+                <Linkedin className="w-4 h-4" />
+              </a>
             </p>
           </div>
         </div>
