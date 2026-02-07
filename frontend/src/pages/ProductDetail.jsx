@@ -23,6 +23,26 @@ const ProductDetail = () => {
   useEffect(() => {
     if (id) {
       dispatch(fetchSingleProduct(id))
+
+      // Track recently viewed product
+      const stored = localStorage.getItem('recentlyViewed')
+      let recentlyViewed = stored ? JSON.parse(stored) : []
+
+      // Fetch the current product data to store
+      // For now, we'll store minimal info and fetch full details later
+      const productToStore = {
+        id,
+        _id: id,
+      }
+
+      // Remove if already exists, then add to beginning
+      recentlyViewed = recentlyViewed.filter((p) => (p.id || p._id) !== id)
+      recentlyViewed.unshift(productToStore)
+
+      // Keep only last 20 viewed products
+      recentlyViewed = recentlyViewed.slice(0, 20)
+
+      localStorage.setItem('recentlyViewed', JSON.stringify(recentlyViewed))
     }
   }, [id, dispatch])
 

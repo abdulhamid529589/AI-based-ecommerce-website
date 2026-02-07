@@ -116,11 +116,12 @@ const productSlice = createSlice({
       })
       .addCase(postProductReview.fulfilled, (state, action) => {
         state.isPostingReview = false
-        toast.success('Review posted successfully')
+        // Update product details and reviews after posting
+        state.productDetails = action.payload.product
+        state.productReviews = action.payload.reviews || []
       })
       .addCase(postProductReview.rejected, (state, action) => {
         state.isPostingReview = false
-        toast.error(action.payload || 'Failed to post review')
       })
 
     // Delete review
@@ -130,11 +131,12 @@ const productSlice = createSlice({
       })
       .addCase(deleteReview.fulfilled, (state, action) => {
         state.isReviewDeleting = false
-        toast.success('Review deleted successfully')
+        // Update product details and reviews after deleting
+        state.productDetails = action.payload.product
+        state.productReviews = action.payload.reviews || []
       })
       .addCase(deleteReview.rejected, (state, action) => {
         state.isReviewDeleting = false
-        toast.error(action.payload || 'Failed to delete review')
       })
   },
 })

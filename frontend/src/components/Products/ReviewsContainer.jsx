@@ -8,6 +8,7 @@ const ReviewsContainer = ({ productId, reviews = [] }) => {
   const [rating, setRating] = useState(5)
   const [comment, setComment] = useState('')
   const [hoverRating, setHoverRating] = useState(0)
+  const [selectedReviewId, setSelectedReviewId] = useState(null)
   const dispatch = useDispatch()
   const { user } = useSelector((state) => state.auth)
   const { isPostingReview, isReviewDeleting } = useSelector((state) => state.product)
@@ -45,18 +46,23 @@ const ReviewsContainer = ({ productId, reviews = [] }) => {
     }
   }
 
-  const handleDeleteReview = async () => {
+  const handleDeleteReview = async (reviewId) => {
     if (!user) {
       toast.error('Please login to delete a review')
       return
     }
 
     if (window.confirm('Are you sure you want to delete your review?')) {
+      setSelectedReviewId(reviewId)
       try {
         await dispatch(deleteReview(productId)).unwrap()
+        setComment('')
+        setRating(5)
         toast.success('Review deleted successfully!')
       } catch (error) {
         toast.error(error || 'Failed to delete review')
+      } finally {
+        setSelectedReviewId(null)
       }
     }
   }
@@ -205,8 +211,8 @@ const ReviewsContainer = ({ productId, reviews = [] }) => {
                   {/* Delete Button - Only for own review */}
                   {user?.id === review.user_id && (
                     <button
-                      onClick={handleDeleteReview}
-                      disabled={isReviewDeleting}
+                      onClick={() => handleDeleteReview(review.id)}
+                      disabled={isReviewDeleting || selectedReviewId === review.id}
                       className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 disabled:opacity-50 transition"
                       title="Delete review"
                     >

@@ -11,9 +11,17 @@ const ProductCard = ({ product }) => {
 
   // Handle product data with both id and _id
   const productId = product._id || product.id
-  const price = typeof product.price === 'string' ? parseFloat(product.price) : product.price
+  const price = typeof product.price === 'string' ? parseFloat(product.price) : product.price || 0
+  const originalPrice = product.originalPrice
+    ? typeof product.originalPrice === 'string'
+      ? parseFloat(product.originalPrice)
+      : product.originalPrice
+    : price
+  const discount =
+    originalPrice > price ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0
   const rating =
     typeof product.ratings === 'string' ? parseFloat(product.ratings) : product.ratings || 0
+  const reviewCount = product.reviewCount || 0
   const image = product.images?.[0]?.url || 'https://via.placeholder.com/300x300?text=No+Image'
 
   const handleAddToCart = (e) => {
@@ -66,6 +74,13 @@ const ProductCard = ({ product }) => {
             </div>
           )}
 
+          {/* Discount Badge */}
+          {discount > 0 && (
+            <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
+              -{discount}%
+            </div>
+          )}
+
           {/* Quick Badge */}
           {product.stock > 10 && (
             <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded text-xs font-semibold">
@@ -86,28 +101,40 @@ const ProductCard = ({ product }) => {
             <Link to={`/product/${productId}`}>{product.name}</Link>
           </h3>
 
-          {/* Rating */}
-          <div className="flex items-center gap-1 mt-2">
-            {[...Array(5)].map((_, i) => (
-              <Star
-                key={i}
-                className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${
-                  i < Math.floor(rating)
-                    ? 'fill-yellow-400 text-yellow-400'
-                    : 'text-gray-300 dark:text-gray-600'
-                }`}
-              />
-            ))}
-            <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">
+          {/* Rating and Reviews */}
+          <div className="flex items-center gap-2 mt-2">
+            <div className="flex items-center gap-1">
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${
+                    i < Math.floor(rating)
+                      ? 'fill-yellow-400 text-yellow-400'
+                      : 'text-gray-300 dark:text-gray-600'
+                  }`}
+                />
+              ))}
+            </div>
+            <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
               {rating.toFixed(1)}
             </span>
+            {reviewCount > 0 && (
+              <span className="text-xs text-gray-500 dark:text-gray-400">({reviewCount})</span>
+            )}
           </div>
 
           {/* Price and Stock */}
           <div className="mt-auto pt-3">
-            <p className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
-              ৳{price.toLocaleString('en-BD', { maximumFractionDigits: 0 })}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
+                ৳{price.toLocaleString('en-BD', { maximumFractionDigits: 0 })}
+              </p>
+              {discount > 0 && (
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 line-through">
+                  ৳{originalPrice.toLocaleString('en-BD', { maximumFractionDigits: 0 })}
+                </p>
+              )}
+            </div>
             <p
               className={`text-xs font-medium mt-1 ${product.stock > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}
             >

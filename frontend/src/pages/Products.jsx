@@ -1,32 +1,90 @@
-import { Search, Sparkles, Star, Filter, Loader, X } from 'lucide-react'
+import { Search, Sparkles, Star, Filter, Loader, X, ChevronDown } from 'lucide-react'
 import { categories } from '../data/products'
 import ProductCard from '../components/Products/ProductCard'
 import ProductSkeleton from '../components/Products/ProductSkeleton'
 import Pagination from '../components/Products/Pagination'
 import AISearchModal from '../components/Products/AISearchModal'
 import { useDispatch, useSelector } from 'react-redux'
-import { useLocation, useSearchParams } from 'react-router-dom'
+import { useLocation, useSearchParams, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { fetchAllProducts } from '../store/slices/productSlice'
 
 const Products = () => {
   const dispatch = useDispatch()
+  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [filteredProducts, setFilteredProducts] = useState([])
   const [selectedCategory, setSelectedCategory] = useState('all')
+  const [selectedSubcategory, setSelectedSubcategory] = useState('all')
   const [priceRange, setPriceRange] = useState([0, 100000])
   const [currentPage, setCurrentPage] = useState(1)
   const [showAISearch, setShowAISearch] = useState(false)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
+  const [sortBy, setSortBy] = useState('relevant')
   const productsPerPage = 12
 
   const { products, loading } = useSelector((state) => state.product)
   const searchTerm = searchParams.get('q') || ''
+  const categoryParam = searchParams.get('category') || 'all'
+  const subcategoryParam = searchParams.get('subcategory') || 'all'
 
   // Fetch products on component mount
   useEffect(() => {
     dispatch(fetchAllProducts())
   }, [dispatch])
+
+  // Update selected category from URL parameter
+  useEffect(() => {
+    setSelectedCategory(categoryParam)
+    setSelectedSubcategory(subcategoryParam)
+    setCurrentPage(1)
+  }, [categoryParam, subcategoryParam])
+
+  // Get current category data
+  const getCategoryUrl = (categoryName) => {
+    return categoryName
+      .toLowerCase()
+      .replace(/\s+&\s+/g, '-')
+      .replace(/\s+/g, '-')
+  }
+
+  const currentCategoryData = categories.find(
+    (cat) => getCategoryUrl(cat.name) === selectedCategory,
+  )
+
+  // Get available subcategories for current category
+  const getSubcategoryOptions = () => {
+    if (!currentCategoryData || !currentCategoryData.subcategories) return []
+    return Object.entries(currentCategoryData.subcategories).flatMap(([section, items]) =>
+      items.map((item) => ({
+        ...item,
+        section,
+      })),
+    )
+  }
+
+  // Handle category change - update URL and reset subcategory
+  const handleCategoryChange = (category) => {
+    setSelectedCategory(category)
+    setSelectedSubcategory('all')
+    setCurrentPage(1)
+    if (category === 'all') {
+      navigate('/products')
+    } else {
+      navigate(`/products?category=${category}`)
+    }
+  }
+
+  // Handle subcategory change - update URL
+  const handleSubcategoryChange = (subcategory) => {
+    setSelectedSubcategory(subcategory)
+    setCurrentPage(1)
+    if (subcategory === 'all') {
+      navigate(`/products?category=${selectedCategory}`)
+    } else {
+      navigate(`/products?category=${selectedCategory}&subcategory=${getCategoryUrl(subcategory)}`)
+    }
+  }
 
   // Filter and search products
   useEffect(() => {
@@ -48,15 +106,54 @@ const Products = () => {
       )
     }
 
+    // Filter by subcategory
+    if (selectedSubcategory !== 'all' && selectedCategory !== 'all') {
+      result = result.filter(
+        (product) =>
+          product.subcategory?.toLowerCase() === getCategoryUrl(selectedSubcategory).toLowerCase(),
+      )
+    }
+
     // Filter by price range
     result = result.filter((product) => {
       const price = typeof product.price === 'string' ? parseFloat(product.price) : product.price
       return price >= priceRange[0] && price <= priceRange[1]
     })
 
+    // Sort products
+    switch (sortBy) {
+      case 'price-asc':
+        result.sort((a, b) => {
+          const priceA = typeof a.price === 'string' ? parseFloat(a.price) : a.price
+          const priceB = typeof b.price === 'string' ? parseFloat(b.price) : b.price
+          return priceA - priceB
+        })
+        break
+      case 'price-desc':
+        result.sort((a, b) => {
+          const priceA = typeof a.price === 'string' ? parseFloat(a.price) : a.price
+          const priceB = typeof b.price === 'string' ? parseFloat(b.price) : b.price
+          return priceB - priceA
+        })
+        break
+      case 'rating':
+        result.sort((a, b) => {
+          const ratingA = typeof a.ratings === 'string' ? parseFloat(a.ratings) : a.ratings || 0
+          const ratingB = typeof b.ratings === 'string' ? parseFloat(b.ratings) : b.ratings || 0
+          return ratingB - ratingA
+        })
+        break
+      case 'newest':
+        result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        break
+      default:
+        // relevant - keep as is
+        break
+    }
+
     setFilteredProducts(result)
     setCurrentPage(1)
-  }, [products, searchTerm, selectedCategory, priceRange])
+  }, [products, searchTerm, selectedCategory, selectedSubcategory, priceRange, sortBy])
 
   // Pagination
   const totalPages = Math.ceil(filteredProducts.length / productsPerPage)
@@ -65,15 +162,28 @@ const Products = () => {
 
   // Get unique categories from categories array
   const categoryNames = categories.map((cat) => cat.name.toLowerCase())
+  const subcategoryOptions = getSubcategoryOptions()
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-20">
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="container mx-auto px-4 py-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Our Products</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            {selectedCategory === 'all'
+              ? 'Our Products'
+              : `${selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)}${
+                  selectedSubcategory !== 'all'
+                    ? ` - ${selectedSubcategory.charAt(0).toUpperCase() + selectedSubcategory.slice(1)}`
+                    : ''
+                } Products`}
+          </h1>
           <p className="text-gray-600 dark:text-gray-300">
-            Discover our amazing collection of products
+            {selectedCategory === 'all'
+              ? 'Discover our amazing collection of products'
+              : `Browse our collection of ${selectedCategory}${
+                  selectedSubcategory !== 'all' ? ` ${selectedSubcategory}` : ''
+                } products`}
           </p>
         </div>
       </div>
@@ -95,6 +205,76 @@ const Products = () => {
             <Sparkles className="w-5 h-5" />
             <span>AI Search</span>
           </button>
+        </div>
+
+        {/* Active Filters and Sort */}
+        <div className="mb-6 space-y-4">
+          {/* Active Filters Indicator */}
+          {(selectedCategory !== 'all' ||
+            selectedSubcategory !== 'all' ||
+            priceRange[1] < 100000) && (
+            <div className="flex flex-wrap gap-2 items-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Active Filters:
+              </span>
+              {selectedCategory !== 'all' && (
+                <span className="px-3 py-1 bg-blue-200 dark:bg-blue-800 text-blue-800 dark:text-blue-200 rounded-full text-xs font-medium flex items-center gap-1">
+                  {selectedCategory}
+                  <button
+                    onClick={() => handleCategoryChange('all')}
+                    className="ml-1 hover:opacity-70"
+                  >
+                    ✕
+                  </button>
+                </span>
+              )}
+              {selectedSubcategory !== 'all' && (
+                <span className="px-3 py-1 bg-blue-200 dark:bg-blue-800 text-blue-800 dark:text-blue-200 rounded-full text-xs font-medium flex items-center gap-1">
+                  {selectedSubcategory}
+                  <button
+                    onClick={() => handleSubcategoryChange('all')}
+                    className="ml-1 hover:opacity-70"
+                  >
+                    ✕
+                  </button>
+                </span>
+              )}
+              {priceRange[1] < 100000 && (
+                <span className="px-3 py-1 bg-blue-200 dark:bg-blue-800 text-blue-800 dark:text-blue-200 rounded-full text-xs font-medium flex items-center gap-1">
+                  Price: ৳{priceRange[0]}-{priceRange[1]}
+                  <button
+                    onClick={() => setPriceRange([0, 100000])}
+                    className="ml-1 hover:opacity-70"
+                  >
+                    ✕
+                  </button>
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Sort Options */}
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">
+                Sort by:
+              </label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white cursor-pointer hover:border-gray-300 dark:hover:border-gray-600 transition"
+              >
+                <option value="relevant">Most Relevant</option>
+                <option value="newest">Newest First</option>
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
+                <option value="rating">Highest Rated</option>
+              </select>
+            </div>
+            <span className="text-sm text-gray-600 dark:text-gray-400">
+              {filteredProducts.length} results
+            </span>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -120,7 +300,7 @@ const Products = () => {
                       name="category"
                       value="all"
                       checked={selectedCategory === 'all'}
-                      onChange={(e) => setSelectedCategory(e.target.value)}
+                      onChange={(e) => handleCategoryChange(e.target.value)}
                       className="w-4 h-4"
                     />
                     <span className="ml-2 text-gray-700 dark:text-gray-300">All Categories</span>
@@ -132,7 +312,7 @@ const Products = () => {
                         name="category"
                         value={cat}
                         checked={selectedCategory === cat}
-                        onChange={(e) => setSelectedCategory(e.target.value)}
+                        onChange={(e) => handleCategoryChange(e.target.value)}
                         className="w-4 h-4"
                       />
                       <span className="ml-2 text-gray-700 dark:text-gray-300 capitalize">
@@ -142,6 +322,43 @@ const Products = () => {
                   ))}
                 </div>
               </div>
+
+              {/* Subcategories - Only show when a category is selected */}
+              {selectedCategory !== 'all' && subcategoryOptions.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
+                    Subcategories
+                  </h3>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    <label className="flex items-center cursor-pointer">
+                      <input
+                        type="radio"
+                        name="subcategory"
+                        value="all"
+                        checked={selectedSubcategory === 'all'}
+                        onChange={(e) => handleSubcategoryChange(e.target.value)}
+                        className="w-4 h-4"
+                      />
+                      <span className="ml-2 text-gray-700 dark:text-gray-300">All</span>
+                    </label>
+                    {subcategoryOptions.map((sub) => (
+                      <label key={sub.id} className="flex items-center cursor-pointer">
+                        <input
+                          type="radio"
+                          name="subcategory"
+                          value={sub.name}
+                          checked={selectedSubcategory === sub.name}
+                          onChange={(e) => handleSubcategoryChange(e.target.value)}
+                          className="w-4 h-4"
+                        />
+                        <span className="ml-2 text-gray-700 dark:text-gray-300 text-sm">
+                          {sub.name}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Price Range */}
               <div>
@@ -238,10 +455,7 @@ const Products = () => {
                       name="category"
                       value="all"
                       checked={selectedCategory === 'all'}
-                      onChange={(e) => {
-                        setSelectedCategory(e.target.value)
-                        setCurrentPage(1)
-                      }}
+                      onChange={(e) => handleCategoryChange(e.target.value)}
                       className="w-4 h-4 accent-blue-600"
                     />
                     <span className="ml-3 text-gray-700 dark:text-gray-300 font-medium">
@@ -258,10 +472,7 @@ const Products = () => {
                         name="category"
                         value={cat}
                         checked={selectedCategory === cat}
-                        onChange={(e) => {
-                          setSelectedCategory(e.target.value)
-                          setCurrentPage(1)
-                        }}
+                        onChange={(e) => handleCategoryChange(e.target.value)}
                         className="w-4 h-4 accent-blue-600"
                       />
                       <span className="ml-3 text-gray-700 dark:text-gray-300 font-medium capitalize">
@@ -271,6 +482,46 @@ const Products = () => {
                   ))}
                 </div>
               </div>
+
+              {/* Subcategories - Only show when a category is selected */}
+              {selectedCategory !== 'all' && subcategoryOptions.length > 0 && (
+                <div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-3 text-sm uppercase tracking-wide">
+                    Subcategories
+                  </h3>
+                  <div className="space-y-2">
+                    <label className="flex items-center cursor-pointer p-2.5 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition">
+                      <input
+                        type="radio"
+                        name="subcategory"
+                        value="all"
+                        checked={selectedSubcategory === 'all'}
+                        onChange={(e) => handleSubcategoryChange(e.target.value)}
+                        className="w-4 h-4 accent-blue-600"
+                      />
+                      <span className="ml-3 text-gray-700 dark:text-gray-300 font-medium">All</span>
+                    </label>
+                    {subcategoryOptions.map((sub) => (
+                      <label
+                        key={sub.id}
+                        className="flex items-center cursor-pointer p-2.5 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition"
+                      >
+                        <input
+                          type="radio"
+                          name="subcategory"
+                          value={sub.name}
+                          checked={selectedSubcategory === sub.name}
+                          onChange={(e) => handleSubcategoryChange(e.target.value)}
+                          className="w-4 h-4 accent-blue-600"
+                        />
+                        <span className="ml-3 text-gray-700 dark:text-gray-300 font-medium text-sm">
+                          {sub.name}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Price Range */}
               <div>
