@@ -1,15 +1,17 @@
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, Navigate, useNavigate, useLocation } from 'react-router-dom'
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, Phone } from 'lucide-react'
 import { axiosInstance } from '../lib/axios'
 import { toast } from 'react-toastify'
 import { setUser } from '../store/slices/authSlice'
 
 const Login = () => {
   const [email, setEmail] = useState('')
+  const [mobile, setMobile] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [useEmail, setUseEmail] = useState(true)
   const [loading, setLoading] = useState(false)
 
   const { isAuthenticated } = useSelector((state) => state.auth)
@@ -17,13 +19,66 @@ const Login = () => {
   const navigate = useNavigate()
   const location = useLocation()
 
+  const formatMobileNumber = (value) => {
+    // Remove all non-digit characters
+    const digitsOnly = value.replace(/\D/g, '')
+
+    // If starts with 880, it's international format
+    if (digitsOnly.startsWith('880')) {
+      if (digitsOnly.length <= 12) {
+        return (
+          '+' +
+          digitsOnly.slice(0, 3) +
+          ' ' +
+          digitsOnly.slice(3, 5) +
+          ' ' +
+          digitsOnly.slice(5, 8) +
+          ' ' +
+          digitsOnly.slice(8, 12)
+        )
+      }
+    } else if (digitsOnly.startsWith('1')) {
+      // Local format (01XXXXXXXXX)
+      if (digitsOnly.length <= 11) {
+        return (
+          '0' +
+          digitsOnly.slice(0, 1) +
+          ' ' +
+          digitsOnly.slice(1, 4) +
+          ' ' +
+          digitsOnly.slice(4, 7) +
+          ' ' +
+          digitsOnly.slice(7, 11)
+        )
+      }
+    } else {
+      // Auto-format as international if just digits
+      if (digitsOnly.length <= 10) {
+        return (
+          '+880 1' +
+          digitsOnly.slice(0, 2) +
+          ' ' +
+          digitsOnly.slice(2, 5) +
+          ' ' +
+          digitsOnly.slice(5, 10)
+        )
+      }
+    }
+    return value
+  }
+
+  const handleMobileChange = (e) => {
+    setMobile(formatMobileNumber(e.target.value))
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
 
     try {
       const response = await axiosInstance.post('/auth/login', {
-        email,
+        email: useEmail ? email : '',
+        mobile: !useEmail ? mobile : '',
         password,
       })
 
@@ -76,27 +131,84 @@ const Login = () => {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
-            {/* Email Input */}
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3"
+            {/* Toggle Between Email and Mobile */}
+            <div className="flex gap-3 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
+              <button
+                type="button"
+                onClick={() => setUseEmail(true)}
+                className={`flex-1 py-2 px-3 rounded text-xs sm:text-sm font-medium transition ${
+                  useEmail
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-transparent text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100'
+                }`}
               >
-                Email Address
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="email"
-                  id="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  className="w-full pl-10 pr-4 py-3 sm:py-3.5 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base sm:text-base transition min-h-[44px]"
-                  required
-                />
-              </div>
+                <Mail className="inline w-4 h-4 mr-1" />
+                Email
+              </button>
+              <button
+                type="button"
+                onClick={() => setUseEmail(false)}
+                className={`flex-1 py-2 px-3 rounded text-xs sm:text-sm font-medium transition ${
+                  !useEmail
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-transparent text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100'
+                }`}
+              >
+                <Phone className="inline w-4 h-4 mr-1" />
+                Mobile
+              </button>
             </div>
+
+            {/* Email Input */}
+            {useEmail && (
+              <div>
+                <label
+                  htmlFor="email"
+                  className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3"
+                >
+                  Email Address
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    type="email"
+                    id="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    className="w-full pl-10 pr-4 py-3 sm:py-3.5 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base sm:text-base transition min-h-[44px]"
+                    required={useEmail}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Mobile Input */}
+            {!useEmail && (
+              <div>
+                <label
+                  htmlFor="mobile"
+                  className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3"
+                >
+                  Mobile Number (Bangladesh)
+                </label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    type="tel"
+                    id="mobile"
+                    value={mobile}
+                    onChange={handleMobileChange}
+                    placeholder="+880 1XX XXX XXXX"
+                    className="w-full pl-10 pr-4 py-3 sm:py-3.5 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base sm:text-base transition min-h-[44px]"
+                    required={!useEmail}
+                  />
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Format: +880 1XX XXX XXXX or 01XXXXXXXXX
+                </p>
+              </div>
+            )}
 
             {/* Password Input */}
             <div>
